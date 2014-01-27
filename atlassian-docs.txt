@@ -1,0 +1,33 @@
+# End of Life  (EOL)
+https://confluence.atlassian.com/display/Support/Atlassian+Support+End+of+Life+Policy
+ 
+# Remove stale application links through the database
+https://confluence.atlassian.com/display/JIRAKB/How+to+remove+Application+link+directly+through+database
+ 
+# SQL queries
+https://confluence.atlassian.com/display/JIRACOM/Example+SQL+queries+for+JIRA
+ 
+# Google SSO with Crowd
+https://confluence.atlassian.com/display/CROWD/Configuring+the+Google+Apps+Connector#ConfiguringtheGoogleAppsConnector-Step1.ConfiguringtheCrowdApplication,DirectoryandGroupDetails
+ 
+# Updating UPM
+https://confluence.atlassian.com/display/UPM/Updating+the+Universal+Plugin+Manager
+ 
+# Find license from old JIRA database
+https://confluence.atlassian.com/display/JIRA/Updating+your+JIRA+License+Details
+ 
+# What DB table does what
+https://confluence.atlassian.com/pages/viewpage.action?pageId=179439242
+ 
+# Confluence max open files error fix
+https://extranet.contegix.com/display/CNT/DaemonTools+-+Tips+and+Tricks#DaemonTools-TipsandTricks-ChangingMaxOpenFilesforaninstancePrimaryMethod
+ 
+# Integrating Bamboo with Crowd for SSO
+# really easy, basically just make sure it has the crowd user dir and change up seraph-config.xml in WEB-INF/classes
+https://confluence.atlassian.com/display/BAMBOO/Integrating+Bamboo+with+Crowd#IntegratingBamboowithCrowd
+ 
+# Disable mail
+https://confluence.atlassian.com/display/JIRA/Restoring+Data
+ 
+# Big list of java options
+https://confluence.atlassian.com/display/DOC/Recognised+System+Properties
