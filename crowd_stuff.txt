@@ -1,0 +1,7 @@
+Disabling users in Crowd based on their group
+Info: https://confluence.atlassian.com/display/CROWD/Deleting+or+Deactivating+a+User
+
+This will make a ton of users not count against a license. Wonder if I get search for users that aren't part of a group...
+
+UPDATE cwd_user SET active='F' WHERE id IN (SELECT child_id FROM cwd_membership WHERE parent_name = 'test_group');
+
