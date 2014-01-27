@@ -1,0 +1,12 @@
+Fisheye migrations from Atlassian Ondemand
+# Need to have their repos cut out of the backup.zip's config.xml and put into our own config.xml, best to use a split screen or two terminals
+
+# Example from OfficeDepot
+Ondemand: /data/jirastudio/svn/root
+
+Our SVN location: /opt/svn/repositories/officedepot.com/repositories
+
+In Vim, run the following regex to replace the OnDemand paths (lol toothpick forest)
+
+%s/\/data\/jirastudio\/svn\/root/\/opt\/svn\/repositories\/officedepot.com\/repositories/g
+
