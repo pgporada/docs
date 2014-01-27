@@ -1,0 +1,60 @@
+View Source
+h1. Node.js 
+
+From the [home page|http://nodejs.org]: 
+
+{quote} 
+Node.js is a platform built on [Chrome's JavaScript runtime|http://code.google.com/p/v8/] for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices. 
+{quote} 
+
+It is basically the equivalent to Tomcat, in that it can parse javascript and present the outcome to the system. Note that this is supported under a "best effort" SLA unlike tomcat. 
+
+{toc:minLevel=2} 
+
+
+h2. Node.js Installation 
+
+h3. To install: 
+
+{code:language=bash} 
+cd /root 
+git clone https://github.com/joyent/node.git 
+cd node 
+# Get most up to date version from nodejs.org 
+git checkout $(curl -s nodejs.org | grep "Current Version:" | sed -e 's/Current Version: //' -e 's/        <p>//' -e 's/<\/p>//') 
+./configure --prefix=/opt/node 
+make 
+make install 
+{code} 
+
+h4. Using Newer Version of Python Than What RHEL Repo Offers 
+
+If you are installing a newer version of Python than what the RHEL repo offers, you can specify that on the configure line. 
+
+{code:language=bash} 
+cd /root 
+git clone https://github.com/joyent/node.git 
+cd node 
+# Get most up to date version from nodejs.org 
+git checkout $(curl -s nodejs.org | grep "Current Version: " | sed -e 's/Current Version: //' -e 's/        <p>//' -e 's/<\/p>//') 
+export PYTHON=/path/to/your/new/python/binary 
+$PYTHON -V 
+$PYTHON ./configure --prefix=/opt/node 
+make 
+make install 
+{code} 
+
+You will not need to make /opt/node ahead of time. Double-check nodejs.org for the most recent version number, though. 
+
+Users may need to add /opt/node/bin to their $PATH in order to get the environment working. 
+
+v0.10.4 requires Python 2.6 or newer. 
+
+[Python Installation doc|CNT:Python] 
+
+h2. References 
+
+* [Python Installation doc|CNT:Python] 
+* [Node.js Home Page|http://nodejs.org] 
+* [Chrome's JavaScript runtime|http://code.google.com/p/v8/] 
+* [Node JS Github Page|https://github.com/joyent/node.git] 
