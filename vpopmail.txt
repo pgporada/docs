@@ -1,0 +1,23 @@
+# Common commands
+http://linux.alanstudio.hk/vpopmail_command.htm
+ 
+# Examples from $COMPANY
+# Used the "manual" version to create the .qmail-isabellel@other-email.org file just like .qmail-stephanied@email.org
+https://extranet.contegix.com/display/CNT/Adding+a+forward+in+qmail
+ 
+- capstone@email.org should cease to forward to stephanied@other-email.org
+ isabellel@other-email.org should be added to that forwarding list.
+ 
+# List all aliases, save this list as it's important
+valias capstone@email.org
+# Delete all aliases, only way I know how to do this
+valias -d capstone@email.org
+# List aliases to verify theyre gone
+valias capstone@email.org
+# Re-add the only aliases along with the change
+valias -i sbs7x9@other-email.org capstone@email.org
+valias -i yj5n8@other-email.org capstone@email.org
+valias -i hjsq58@other-email.org capstone@email.org
+valias -i isabellel@other-email.org capstone@email.org
+valias -i anishm@other-email.org capstone@email.org
+valias -i aaronf@other-email.org capstone@email.org
