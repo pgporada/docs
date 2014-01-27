@@ -1,0 +1,181 @@
+View Source
+h3. What is stunnel? 
+
+
+Stunnel is a program that allows you to encrypt arbitrary TCP connections inside of SSL. Examples include POP, IMAP, LDAP, Postgres replication, and MySQL replication to name a few. Stunnel works in a client server fashion and can be managed by Daemontools. On genericserver01 you set up a stunnel server, which is really just a configuration change from the client, that a client from genericserver02 can connect to. For this documents purposes, we will be configuring MySQL Master-Slave replication between servers. While MySQL does have SSL support, it's not always enabled by default and is somewhat of a pain in the ass to set up. For a working version of stunnel encrypted MySQL Master-Slave replication, check Gliffy01 (server) and Gliffy04 (client). 
+
+
+{toc:minLevel=2} 
+
+
+h3. Step 1) 
+
+
+h5. Install stunnel on RHEL 5 and up 
+
+{code}yum install stunnel{code} 
+
+
+h3. Step 2) 
+
+
+h5. Create stunnel directory and SSL cert, and install the daemontools service package. 
+
+This stunnel-service.tar.gz was created by a previous employee and was originally [linked here.|https://extranet.contegix.com/pages/viewpageattachments.action?pageId=4292809&metadataLink=true] 
+
+
+
+
+
+
+*Genericserver01 - Server* 
+
+
+{code} 
+mkdir -p /opt/stunnel/server ; cd /opt/stunnel/server 
+openssl req -new -x509 -days 3650 -nodes -out stunnel.pem -keyout stunnel.pem 
+chmod 600 stunnel.pem 
+
+svn export --no-auth-cache https://63.246.18.186/svn/PGP/stunnel-service.tar.gz 
+tar zxf stunnel-service.tar.gz 
+./fixPermissions.sh service root root 
+
+cd /opt/stunnel/server/service/env 
+echo "/opt/stunnel/server/server.conf" > CONFIG 
+echo root > USER 
+{code} 
+*Genericserver02 - Client* 
+
+
+{code} 
+mkdir -p /opt/stunnel/client ; cd /opt/stunnel/client 
+svn export --no-auth-cache https://63.246.18.186/svn/PGP/stunnel-service.tar.gz 
+tar zxf stunnel-service.tar.gz 
+./fixPermissions.sh service root root 
+
+cd /opt/stunnel/client/service/env 
+echo "/opt/stunnel/client/client.conf" > CONFIG 
+echo root > USER 
+{code} 
+Get a copy of the stunnel.pem certificate you created from Genericserver01 and create a copy in /opt/stunnel/client 
+
+h3. Step 3) 
+
+h5. Configuring it all 
+
+Note: Make sure that the ports are open in Shorewall otherwise this will *NOT* work. 
+{code} 
+cd /etc/shorewall 
+cat > macro.Stunnel << "EOF" 
+PARAM - - tcp 3306 
+PARAM - - tcp 3307 
+PARAM - - tcp 3308 
+EOF 
+
+# Add the rules to rules ... 
+shorewall check 
+shorewall restart 
+{code} 
+
+Double note: Make sure nothing is using the ports you're going to use, obviously besides 3306 which is MySQL by default. If so, change the ports accordingly. 
+
+{code} 
+netstat -tln | grep -v grep | grep 330[6..8] 
+{code} 
+
+*Genericserver01 - Server* \- Create the following configuration file 
+
+Note: The accept = $PORT line is the port the client(s) will be connecting to 
+
+
+{code} 
+# Get the public IP, you'll need it for the clients 
+
+cd /opt/stunnel/server ; cat > server.conf << "EOF" 
+;Server side configuration 
+foreground = yes 
+client = no 
+cert = /opt/stunnel/server/stunnel.pem 
+debug = 7 
+output = /var/log/stunnel.log 
+
+; This is for connecting to the... 
+[mysql-slave] 
+accept = 3308 
+connect = 127.0.0.1:3306 
+TIMEOUTclose = 0 
+EOF 
+
+
+cd /service ; ln -s /opt/stunnel/server/service stunnel-server 
+
+# Shut it down until you're ready to use it 
+svc -d /service/stunnel-server 
+{code} 
+
+*Genericserver02 - Client* \- Create the following configuration file 
+
+Note: The accept line here is the port that you'll hit locally to connect to the Master 
+Example using information below: mysql -u replication -h 127.0.0.1 -P 3307 -p 
+
+{code} 
+cd /opt/stunnel/client ; cat > client.conf << "EOF" 
+; Client side configuration 
+foreground = yes 
+client = yes 
+debug = 7 
+output = /var/log/stunnel.log 
+
+; This is for connecting to the... 
+[mysql-master] 
+accept = 127.0.0.1:3307 
+connect = $PUBLIC_IP:3308 
+TIMEOUTclose = 0 
+EOF 
+
+# Replace $PUBLIC_IP with public IP from Genericserver01, edit this line accordingly 
+sed -i 's/$PUBLIC_IP/GENERICSERVER01_IP/' client.conf 
+
+
+cd /service ; ln -s /opt/stunnel/client/service stunnel-client 
+# Shut it down until you're ready to use it 
+svc -d /service/stunnel-client 
+{code} 
+
+h3. Step 4) 
+
+
+h5. Testing it out. From the client, try to connect to the stunnel'd MySQL Master. 
+
+*Genericserver01 - Server* 
+{code}svc -u /service/stunnel-server{code} 
+
+*Genericserver02 - Client* 
+
+Note: You'll fill in $CLIENT_PORT with the port from the accept line in client.conf 
+
+
+{code}# Test it. If you connect you should see the mysql> prompt. Typing in SHOW DATABASES; will return only the information_schema table but this is good. 
+svc -u /service/stunnel-client 
+mysql -u replication -h 127.0.0.1 -P $CLIENT_PORT -p 
+
+
+# Remember that when switching Masters, you'll need to stop the Slave first and get the MASTER_LOG_FILE and MASTER_LOG_POS variables 
+su - mysql 
+mysql -e "show slave status\G" 
+
+
+# Swapping the replication from public to private provided by stunnel. Remember to change the variables. 
+# For this example, $PORT_ON_MASTER would be 3308 
+su - mysql 
+change master to master_host = '127.0.0.1', master_port=$PORT_ON_MASTER, master_user = '$REPLICATION_USER_ON_MASTER', master_password = '$REPLICATION_USER_PASS_ON_MASTER', MASTER_LOG_FILE='$LOG_FILE',MASTER_LOG_POS=$POSITION ; 
+{code} 
+
+h3. Troubleshooting 
+You can tail the tomcat log for each instance and also /var/log/stunnel.log 
+
+h3. References 
+
+[http://tech.akom.net/archives/33-MySQL-Master-Master-Replication-over-a-Secure-Stunnel-Connection-SSL.html] 
+[http://wiki.grid.auth.gr/wiki/bin/view/AdminGuides/SEEVOVOMSReplication] 
+[http://blog.schaal-24.de/?p=1542&lang=en]
